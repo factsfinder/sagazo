@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sagazo — India's Hyperlocal Social Network</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Manrope:wght@300;400;500&display=swap"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --orange: #f55c00;
+        --orange-soft: #ff7a28;
+        --bg: #080806;
+        --surface: rgba(255, 255, 255, 0.04);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #f0ede8;
+        --muted: rgba(240, 237, 232, 0.45);
+        --faint: rgba(240, 237, 232, 0.2);
+      }
+
+      html,
+      body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Manrope', sans-serif;
+        overflow: hidden;
+      }
+
+      /* Grain overlay */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 100;
+        opacity: 0.6;
+      }
+
+      /* Ambient glow blobs */
+      .blob {
+        position: fixed;
+        border-radius: 50%;
+        filter: blur(120px);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .blob-1 {
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(245, 92, 0, 0.18) 0%, transparent 70%);
+        top: -200px;
+        right: -100px;
+      }
+      .blob-2 {
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(245, 92, 0, 0.08) 0%, transparent 70%);
+        bottom: -100px;
+        left: 10%;
+      }
+
+      /* Page layout */
+      .page {
+        position: relative;
+        z-index: 1;
+        height: 100vh;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr auto;
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 48px;
+        gap: 0 64px;
+        align-items: center;
+      }
+
+      /* LEFT COLUMN */
+      .left {
+        grid-column: 1;
+        grid-row: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 48px 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-bottom: 36px;
+      }
+
+      .brand-mark {
+        width: 48px;
+        height: 48px;
+        background: var(--orange);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        font-size: 26px;
+        color: white;
+        box-shadow: 0 0 32px rgba(245, 92, 0, 0.4);
+        flex-shrink: 0;
+      }
+
+      .brand-name {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        font-size: 32px;
+        color: var(--orange);
+        letter-spacing: -0.3px;
+      }
+
+      .headline {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        font-size: clamp(38px, 4.2vw, 64px);
+        line-height: 1;
+        letter-spacing: -1.5px;
+        color: var(--text);
+        margin-bottom: 22px;
+      }
+
+      .headline em {
+        font-style: normal;
+        color: var(--orange);
+      }
+
+      .subhead {
+        font-size: clamp(14px, 1.3vw, 17px);
+        color: var(--muted);
+        line-height: 1.65;
+        max-width: 440px;
+        margin-bottom: 36px;
+        font-weight: 300;
+      }
+
+      /* Feature pills */
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .pill {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+
+      .pill-dot {
+        width: 6px;
+        height: 6px;
+        background: var(--orange);
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* RIGHT COLUMN — card */
+      .right {
+        grid-column: 2;
+        grid-row: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 0;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 420px;
+        background: #111110;
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        padding: 36px;
+        backdrop-filter: blur(24px);
+        box-shadow:
+          0 32px 80px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+      }
+
+      .card-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(245, 92, 0, 0.12);
+        border: 1px solid rgba(245, 92, 0, 0.25);
+        border-radius: 999px;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--orange-soft);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+
+      .card-badge-dot {
+        width: 5px;
+        height: 5px;
+        background: var(--orange);
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 0.5;
+          transform: scale(0.8);
+        }
+      }
+
+      .card-title {
+        font-family: 'Manrope', sans-serif;
+        font-weight: 800;
+        font-size: 24px;
+        letter-spacing: -0.3px;
+        margin-bottom: 8px;
+      }
+
+      .card-desc {
+        font-size: 13.5px;
+        color: var(--muted);
+        line-height: 1.6;
+        margin-bottom: 24px;
+        font-weight: 300;
+      }
+
+      .input-wrap {
+        position: relative;
+        margin-bottom: 12px;
+      }
+
+      .input-wrap input {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        color: var(--text);
+        font-family: 'Manrope', sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+
+      .input-wrap input::placeholder {
+        color: var(--faint);
+      }
+
+      .input-wrap input:focus {
+        border-color: rgba(245, 92, 0, 0.5);
+        background: rgba(245, 92, 0, 0.04);
+      }
+
+      /* CTA Button */
+      .btn {
+        width: 100%;
+        padding: 16px;
+        background: var(--orange);
+        border: none;
+        border-radius: 14px;
+        color: white;
+        font-family: 'Manrope', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          background 0.2s,
+          transform 0.1s,
+          box-shadow 0.2s;
+        box-shadow: 0 4px 24px rgba(245, 92, 0, 0.35);
+        letter-spacing: 0.01em;
+      }
+
+      .btn:hover {
+        background: var(--orange-soft);
+        box-shadow: 0 6px 32px rgba(245, 92, 0, 0.5);
+      }
+
+      .btn:active {
+        transform: scale(0.99);
+      }
+
+      /* Trust row */
+      .trust-row {
+        margin-top: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 18px;
+      }
+
+      .trust-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+        color: var(--faint);
+      }
+
+      .trust-icon {
+        color: rgba(245, 92, 0, 0.5);
+        font-size: 10px;
+      }
+
+      /* ── MODAL ── */
+      .modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        backdrop-filter: blur(8px);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .modal-backdrop.open {
+        display: flex;
+        animation: backdropIn 0.25s ease both;
+      }
+
+      @keyframes backdropIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal {
+        background: #161614;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        width: 100%;
+        max-width: 520px;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+        animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+      }
+
+      @keyframes modalIn {
+        from {
+          opacity: 0;
+          transform: translateY(24px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 22px 24px 18px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .modal-header-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .modal-title {
+        font-weight: 800;
+        font-size: 17px;
+        letter-spacing: -0.3px;
+      }
+
+      .modal-subtitle {
+        font-size: 12.5px;
+        color: var(--muted);
+        font-weight: 400;
+      }
+
+      .modal-close {
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid var(--border);
+        border-radius: 50%;
+        color: var(--muted);
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        flex-shrink: 0;
+      }
+
+      .modal-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--text);
+      }
+
+      .modal-body {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .modal-body iframe {
+        width: 100%;
+        height: 480px;
+        display: block;
+        border: none;
+        filter: invert(1) hue-rotate(180deg) brightness(0.88) contrast(0.95);
+      }
+
+      /* Footer bar */
+      .footer {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        border-top: 1px solid var(--border);
+        padding: 16px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .footer-left {
+        font-size: 12px;
+        color: var(--faint);
+      }
+      .footer-right {
+        font-size: 12px;
+        color: var(--faint);
+      }
+      .footer-right span {
+        color: rgba(245, 92, 0, 0.6);
+      }
+
+      /* Fade-in animation */
+      .left,
+      .card {
+        animation: fadeUp 0.7s ease both;
+      }
+      .card {
+        animation-delay: 0.15s;
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(18px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Mobile */
+      @media (max-width: 768px) {
+        html,
+        body {
+          overflow: auto;
+        }
+        .page {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto;
+          padding: 0 24px;
+          height: auto;
+          min-height: 100vh;
+          gap: 0;
+        }
+        .left {
+          grid-column: 1;
+          grid-row: 1;
+          padding: 40px 0 24px;
+        }
+        .right {
+          grid-column: 1;
+          grid-row: 2;
+          padding: 0 0 32px;
+        }
+        .footer {
+          grid-column: 1;
+          grid-row: 3;
+          flex-direction: column;
+          gap: 4px;
+          text-align: center;
+        }
+        .headline {
+          font-size: 36px;
+          letter-spacing: -1.5px;
+        }
+        .blob-1 {
+          width: 300px;
+          height: 300px;
+        }
+        .modal-body iframe {
+          height: 420px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+
+    <div class="page">
+      <!-- LEFT -->
+      <div class="left">
+        <div class="brand">
+          <div class="brand-mark">S</div>
+          <span class="brand-name">Sagazo</span>
+        </div>
+
+        <h1 class="headline">India's<br /><em>hyperlocal</em><br />social network</h1>
+
+        <p class="subhead">
+          Connect with neighbors, discover what's happening nearby, and shop local —
+          delivered fast. Built for every corner of India.
+        </p>
+
+        <div class="pills">
+          <div class="pill">
+            <div class="pill-dot"></div>
+            Neighborhood feeds
+          </div>
+          <div class="pill">
+            <div class="pill-dot"></div>
+            Local commerce
+          </div>
+          <div class="pill">
+            <div class="pill-dot"></div>
+            Hyperlocal discovery
+          </div>
+          <div class="pill">
+            <div class="pill-dot"></div>
+            Fast delivery
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="right">
+        <div class="card">
+          <div class="card-badge">
+            <div class="card-badge-dot"></div>
+            Launching 2026
+          </div>
+
+          <p class="card-title">Get early access</p>
+          <p class="card-desc">
+            Be first in your neighborhood. Join the waitlist and we'll notify you at
+            launch.
+          </p>
+
+          <button class="btn" onclick="openModal()">Join the Waitlist →</button>
+
+          <div class="trust-row">
+            <div class="trust-item"><span class="trust-icon">✦</span> No spam</div>
+            <div class="trust-item"><span class="trust-icon">✦</span> Privacy first</div>
+            <div class="trust-item"><span class="trust-icon">✦</span> Free forever</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <footer class="footer">
+        <p class="footer-left">
+          © 2026 Proper Eleven Technologies Pvt Ltd · Made with care in India
+        </p>
+        <p class="footer-right">A <span>hyperlocal</span> future for every Indian city</p>
+      </footer>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-backdrop" id="modal-backdrop" onclick="handleBackdropClick(event)">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-header-left">
+            <span class="modal-title">Join the Sagazo Waitlist</span>
+            <span class="modal-subtitle">Takes less than 30 seconds</span>
+          </div>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <iframe
+            src="https://docs.google.com/forms/d/e/1FAIpQLSfzkf9g8qkicFK5_RBB-HfD-Kai0t2Xt895-vazi5ZiqRUHoQ/viewform?embedded=true"
+            frameborder="0"
+            marginheight="0"
+            marginwidth="0"
+            title="Sagazo Waitlist Form"
+          >
+            Loading…
+          </iframe>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openModal() {
+        document.getElementById('modal-backdrop').classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        document.getElementById('modal-backdrop').classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      function handleBackdropClick(e) {
+        if (e.target === document.getElementById('modal-backdrop')) closeModal();
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeModal();
+      });
+    </script>
+  </body>
+</html>
